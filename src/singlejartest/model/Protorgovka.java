@@ -23,4 +23,8 @@ public class Protorgovka extends Area {
     public void setWhy_close(String why_close) {
         this.why_close = why_close;
     }
+
+    public double get_width_80_percent(){
+        return (this.getMaxBar().getClose()-this.getMinBar().getClose()) * 0.8;
+    }
 }

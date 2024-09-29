@@ -158,6 +158,14 @@ public class MA_Play implements IStrategy {
         return (max_min.get("Max")-max_min.get("Min"))*0.8;
     }
 
+    public boolean check_first_long_param(Protorgovka protorgovka,IBar bar){
+        return protorgovka.getMinBar().getClose()-bar.getClose() > protorgovka.get_width_80_percent() ? true:false;
+    }
+
+    public boolean check_first_short_param(Protorgovka protorgovka,IBar bar){
+        return bar.getClose()-protorgovka.getMaxBar().getClose() > protorgovka.get_width_80_percent() ? true:false;
+    }
+
 
     public void onTick(Instrument instrument, ITick tick) throws JFException {
         Scanner sc = new Scanner(System.in);
