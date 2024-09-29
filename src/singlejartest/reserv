@@ -1,0 +1,56 @@
+                    Поиск проторговок
+
+        List<IBar> bars = getBars(Period.DAILY,Instrument.EURUSD,30);
+        Double volatility = anyFunction.get_volatility_v1(bars);
+        System.out.println(volatility);
+        bars = getBars(Period.ONE_HOUR,Instrument.EURUSD,1440/2);
+        List<Protorgovka> protorgovkas = anyFunction.find_areaa(bars,volatility/100);
+        System.out.println("Всего проторговок" + protorgovkas.size());
+        for(Protorgovka protorgovka : protorgovkas){
+            Date date1 = new Date(protorgovka.getFirst().getTime());
+            Date date2 = new Date(protorgovka.getLast().getTime());
+            System.out.println(date1 + "| " + date2 );
+            System.out.println(protorgovka.getWhy_close());
+        }
+
+
+
+
+
+
+
+
+                    запись баров в json файлы
+
+        List<IBar> bars_10m_eur_usd = getBars(Period.TEN_MINS,Instrument.EURUSD,25920);
+        List<IBar> bars_15m_eur_usd = getBars(Period.FIFTEEN_MINS,Instrument.EURUSD,17280);
+        List<IBar> bars_1h_eur_usd = getBars(Period.ONE_HOUR,Instrument.EURUSD,4320);
+        List<IBar> bars_1d_eur_usd = getBars(Period.DAILY,Instrument.EURUSD,180);
+        List<IBar> bars_10m_usd_jpy = getBars(Period.TEN_MINS,Instrument.USDJPY,25920);
+        List<IBar> bars_15m_usd_jpy = getBars(Period.FIFTEEN_MINS,Instrument.USDJPY,17280);
+        List<IBar> bars_1h_usd_jpy = getBars(Period.ONE_HOUR,Instrument.USDJPY,4320);
+        List<IBar> bars_1d_usd_jpy = getBars(Period.DAILY,Instrument.USDJPY,180);
+        try {
+            mapper.writeValue(new File("bars_10m_eur_usd.json"),bars_10m_eur_usd);
+            mapper.writeValue(new File("bars_15m_eur_usd.json"),bars_15m_eur_usd);
+            mapper.writeValue(new File("bars_1h_eur_usd.json"),bars_1h_eur_usd);
+            mapper.writeValue(new File("bars_1d_eur_usd.json"),bars_1d_eur_usd);
+            mapper.writeValue(new File("bars_10m_usd_jpy.json"),bars_10m_usd_jpy);
+            mapper.writeValue(new File("bars_15m_usd_jpy.json"),bars_15m_usd_jpy);
+            mapper.writeValue(new File("bars_1h_usd_jpy.json"),bars_1h_usd_jpy);
+            mapper.writeValue(new File("bars_1d_usd_jpy.json"),bars_1d_usd_jpy);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+
+
+                         Получение баров от json
+
+        try {
+            bars = List.of(mapper.readValue(new File("bars_eur_usd.json"), MyBar[].class));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
