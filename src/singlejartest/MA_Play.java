@@ -32,6 +32,7 @@ package singlejartest;
 import com.dukascopy.api.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import singlejartest.model.Area;
 import singlejartest.model.Protorgovka;
 import singlejartest.model.TrendDown;
 import singlejartest.model.TrendUp;
@@ -63,41 +64,21 @@ public class MA_Play implements IStrategy {
         this.engine = context.getEngine();
         this.console = context.getConsole();
         indicators = context.getIndicators();
-        this.algoritms = new Algoritms(this.account,this.history,this.engine);
-        console.getOut().println("Started");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyy HH:mm:ss");
-        dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-        Date dateFrom = new Date();
-        Date dateTo = new Date();
-        try {
-            dateFrom = dateFormat.parse("16/06/2024 00:00:00");
-            dateTo = dateFormat.parse("11/07/2024 00:00:00");
-        } catch (ParseException e) {
-            e.printStackTrace();
+        List<IBar> bars = getBars(Period.FIFTEEN_MINS,Instrument.GBPUSD,5000);
+        AreasFinder areasFinder = new AreasFinder(bars,Period.FIFTEEN_MINS,Instrument.GBPUSD);
+        List<Protorgovka> protorgovkas = areasFinder.find_protorgovkas(0.01);
+        for (Protorgovka protorgovka : protorgovkas) {
+            protorgovka.getFirstBarLastTime();
         }
-        Double v = anyFunction.get_volatility_v1(getBars(Period.DAILY,Instrument.USDJPY,30));
-        System.out.println(v);
-        List<IBar> bars = getBarsWithTimePeriod(Period.ONE_HOUR,Instrument.USDJPY,dateFrom,dateTo);
-        AreasFinder areasFinder = new AreasFinder(bars);
-        for (TrendDown trend:areasFinder.find_trendDowns()){
-            trend.getFirstBarLastTime();
-        }
-        System.out.println("");
-        for (TrendUp trend:areasFinder.find_trendUp()){
-            trend.getFirstBarLastTime();
-        }
-
-
-
-
-
+        Protorgovka protorgovka = get_last_protorgovka(Instrument.GBPUSD,Period.FIFTEEN_MINS);
+        protorgovka.getFirstBarLastTime();
         // Analysis
-        System.out.println("SLEEEP!!");
-       try {
-           Thread.sleep(10000000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-       }
+//        System.out.println("SLEEEP!!");
+//       try {
+//           Thread.sleep(1);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//       }
     }
 
 
@@ -124,6 +105,107 @@ public class MA_Play implements IStrategy {
         return bars;
     }
 
+    public Protorgovka get_last_protorgovka(Instrument instrument,Period period) throws JFException {
+        Protorgovka protorgovka = new Protorgovka(period,instrument);
+        List<IBar> bars = getBars(Period.DAILY,instrument,30);
+        double volatillity = anyFunction.get_volatility_v1(bars);
+        System.out.println(volatillity);
+        List<IBar> bars_for_chech_trend;
+        double trend_param_changer = volatillity / 4.5;
+        double bars_trend_diference;
+        double delta_between_bars;
+        double delta_in_area;
+        double max_cost_in_area;
+        double min_cost_in_area;
+        double close_cost_bar;
+        double close_cost_old_bar;
+        boolean flag_1 = true;
+        boolean flag_2;
+        IBar last_bar = null;
+        IBar previous_bar;
+        IBar bar;
+        int counter_1 = 0;
+        int counter_2 = 1;
+        while (flag_1){
+            counter_1+=1;
+            bars_trend_diference = 0;
+            flag_2 = true;
+            bars_for_chech_trend = new ArrayList<>();
+            protorgovka = new Protorgovka(period,instrument);
+            bar = history.getBar(instrument,period,OfferSide.BID,counter_1);
+            while (new Date(bar.getTime()).getDay()==0||new Date(bar.getTime()).getMonth()==6 || bar.getVolume()==0){
+                counter_1+=1;
+                bar = history.getBar(instrument,period,OfferSide.BID,counter_1);
+            }
+            bar = history.getBar(instrument,period,OfferSide.BID,counter_1);
+            protorgovka.addBar(bar);
+            delta_in_area = (bar.getClose()+bar.getClose())/2 * volatillity;
+            max_cost_in_area = bar.getHigh();
+            min_cost_in_area = bar.getLow();
+            previous_bar = bar;
+            bars_for_chech_trend.add(bar);
+            counter_2 = counter_1;
+            while (flag_2){
+                counter_2 +=1;
+                System.out.println(counter_2);
+                delta_between_bars = (previous_bar.getClose() + previous_bar.getClose())/2 * volatillity / 5;
+                bar = history.getBar(instrument,period,OfferSide.BID,counter_2);
+                while (new Date(bar.getTime()).getDay()==0||new Date(bar.getTime()).getMonth()==6||bar.getVolume()==0){
+                    counter_2+=1;
+                    bar = history.getBar(instrument,period,OfferSide.BID,counter_2);
+                }
+                bars_for_chech_trend.add(bar);
+                close_cost_bar = bar.getClose();
+                close_cost_old_bar = previous_bar.getClose();
+                System.out.println(Math.abs(close_cost_bar-close_cost_old_bar)>delta_between_bars);
+                max_cost_in_area = Math.max(close_cost_bar, max_cost_in_area);
+                min_cost_in_area = Math.min(close_cost_bar, min_cost_in_area);
+                if(bars_for_chech_trend.size()==6){
+                    bars_trend_diference = 0;
+                    for(int b = 0;b<bars_for_chech_trend.size()-1;b++){
+                        bars_trend_diference += bars_for_chech_trend.get(b).getClose() - bars_for_chech_trend.get(b+1).getClose();
+                    }
+                    bars_for_chech_trend.remove(0);
+                }
+                if(max_cost_in_area-min_cost_in_area>delta_in_area){
+                    protorgovka.setWhy_close("Delta area Error: " + (max_cost_in_area-min_cost_in_area) + " > " + delta_in_area );
+                    flag_2 = false;
+                }
+
+                if(Math.abs(close_cost_bar-close_cost_old_bar)>delta_between_bars){
+                    protorgovka.setWhy_close("Delta bars Error: " + ((Math.abs(close_cost_bar-close_cost_old_bar)) + " > " +delta_between_bars ));
+                    flag_2 = false;
+                }
+
+                if(trend_param_changer*bar.getClose() < Math.abs(bars_trend_diference)){
+                    String error = "Delta trend Error: " + ((Math.abs(bars_trend_diference)) + " > " +trend_param_changer*bar.getClose());
+                    for(IBar b:bars_for_chech_trend){
+                        Date date = new Date(b.getTime());
+                        error = error +"\n" +date + " | " + b.getClose();
+                    }
+                    protorgovka.deleteLast();
+                    protorgovka.setWhy_close(error);
+                    flag_2 = false;
+                }
+                if(flag_2 == false){
+                    System.out.println("!!");
+                    break;
+                }
+                else {
+                    protorgovka.addBar(bar);
+                }
+                previous_bar = bar;
+            }
+            if(protorgovka.getArea_length()>=10){
+                List<IBar> l = protorgovka.getBars();
+                Collections.reverse(l);
+                protorgovka.setBars(l);
+                return protorgovka;
+            }
+        }
+        return protorgovka;
+    }
+
     public List<IBar> getBarsWithTimePeriod(Period period,Instrument instrument,Date startTime,Date prevBarTime) throws JFException {
         List<IBar> bars = history.getBars(instrument, period, OfferSide.BID, startTime.getTime(), prevBarTime.getTime());
         bars = bars.stream().filter(b -> b.getVolume() > 0).collect(Collectors.toList());
@@ -137,70 +219,26 @@ public class MA_Play implements IStrategy {
         console.getOut().println("Stopped");
     }
 
-    public HashMap<String, Double> getMax_Min(List<IBar> bars){
-        HashMap<String,Double> max_min = new HashMap<>();
-        double min = Double.MAX_VALUE;
-        double max = Double.MIN_VALUE;
-        for (IBar bar : bars) {
-            if (bar.getHigh() > max) {
-                max = bar.getHigh();
-            }
-            if (bar.getLow() < min) {
-                min = bar.getLow();
-            }
-        }
-        max_min.put("Max", max);
-        max_min.put("Min", min);
-        return max_min;
-    }
 
-    public Double get_80_percent_last_area(HashMap<String,Double> max_min){
-        return (max_min.get("Max")-max_min.get("Min"))*0.8;
-    }
-
-    public boolean check_first_long_param(Protorgovka protorgovka,IBar bar){
+    public boolean check_first_long_param(Protorgovka protorgovka) throws JFException {
+        IBar bar = history.getBar(protorgovka.getInstrument(),protorgovka.getPeriod(),OfferSide.BID,1);
         return protorgovka.getMinBar().getClose()-bar.getClose() > protorgovka.get_width_80_percent() ? true:false;
     }
 
-    public boolean check_first_short_param(Protorgovka protorgovka,IBar bar){
+    public boolean check_first_short_param(Protorgovka protorgovka) throws JFException {
+        IBar bar = history.getBar(protorgovka.getInstrument(),protorgovka.getPeriod(),OfferSide.BID,1);
         return bar.getClose()-protorgovka.getMaxBar().getClose() > protorgovka.get_width_80_percent() ? true:false;
     }
 
 
     public void onTick(Instrument instrument, ITick tick) throws JFException {
-        Scanner sc = new Scanner(System.in);
         if (instrument.isTradable()) {
-            //System.out.println("Введите команду для покупки продажи");
             System.out.println("Алгоритм в работе");
-            List<IBar> bars = getBars(Period.TEN_MINS,Instrument.EURUSD,60);
-            HashMap<String,Double> max_min = getMax_Min(bars);
-            Double max_cost = max_min.get("Max");
-            Double min_cost = max_min.get("Min");
-            Double max_cost_for_bye = max_cost*0.999;
-            Double min_cost_for_bye = min_cost*1.001;
-            Double cost_bye = history.getLastTick(instrument).getAsk();
-            Double cost_sell = history.getLastTick(instrument).getBid();
-            // String label = sc.nextLine();
-            if(cost_sell>=max_cost_for_bye){
-                System.out.println(cost_sell);
-                System.out.println(max_cost_for_bye);
-                System.out.println(max_cost);
+            Protorgovka protorgovka = get_last_protorgovka(Instrument.USDJPY,Period.FIFTEEN_MINS);
+            protorgovka.getFirstBarLastTime();
 
-                //algoritms.algoritm_second(instrument,cost_sell);
-            }
-            if(cost_bye<=min_cost_for_bye){
-                System.out.println(cost_bye);
-                System.out.println(min_cost_for_bye);
-                System.out.println(min_cost);
 
-                //algoritms.algoritm_first(instrument, cost_bye);
-            }
-//            if(label.equals("b")){
-//                algoritm_first(instrument,bar.getHigh());
-//            }
-//            if(label.equals("s")){
-//                algoritm_second(instrument,bar.getLow());
-//            }
+
             try {
                 System.out.println("sleep");
                 Thread.sleep(5000);

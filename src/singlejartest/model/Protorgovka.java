@@ -1,6 +1,8 @@
 package singlejartest.model;
 
 import com.dukascopy.api.IBar;
+import com.dukascopy.api.Instrument;
+import com.dukascopy.api.Period;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -11,8 +13,8 @@ import java.util.List;
 public class Protorgovka extends Area {
     String why_close;
 
-    public Protorgovka(){
-        super();
+    public Protorgovka(Period period, Instrument instrument){
+        super(period,instrument);
         why_close = "";
     }
 

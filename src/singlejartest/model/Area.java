@@ -1,6 +1,8 @@
 package singlejartest.model;
 
 import com.dukascopy.api.IBar;
+import com.dukascopy.api.Instrument;
+import com.dukascopy.api.Period;
 import org.ta4j.core.Bar;
 
 import java.time.ZoneId;
@@ -15,13 +17,17 @@ public class Area {
     double height_as_percent;
     IBar max_bar;
     IBar min_bar;
+    Period period;
+    Instrument instrument;
     //String why_close;
 
-    public Area() {
-        bars = new ArrayList<IBar>();
-        height_as_percent = 0.0;
-        max_bar = null;
-        min_bar = null;
+    public Area(Period period,Instrument instrument) {
+        this.period = period;
+        this.instrument = instrument;
+        this.bars = new ArrayList<IBar>();
+        this.height_as_percent = 0.0;
+        this.max_bar = null;
+        this.min_bar = null;
         //why_close = "no info";
     }
 
@@ -98,5 +104,36 @@ public class Area {
 
     public void addAll(List<IBar> bars) {
         this.bars.addAll(bars);
+    }
+
+    public List<IBar> getBars() {
+        return bars;
+    }
+
+    public void setBars(List<IBar> bars) {
+        this.bars = bars;
+    }
+
+    public void deleteLast(){
+        bars.remove(bars.size()-1);
+    }
+    public void deleteFirst(){
+        bars.remove(0);
+    }
+
+    public Period getPeriod() {
+        return period;
+    }
+
+    public void setPeriod(Period period) {
+        this.period = period;
+    }
+
+    public Instrument getInstrument() {
+        return instrument;
+    }
+
+    public void setInstrument(Instrument instrument) {
+        this.instrument = instrument;
     }
 }

@@ -148,6 +148,7 @@ public class Main {
         Set<Instrument> instruments = new HashSet<>();
         instruments.add(Instrument.EURUSD);
         instruments.add(Instrument.USDJPY);
+        instruments.add(Instrument.GBPUSD);
         LOGGER.info("Subscribing instruments...");
         client.setSubscribedInstruments(instruments);
     }
