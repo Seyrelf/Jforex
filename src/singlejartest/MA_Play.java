@@ -65,6 +65,9 @@ public class MA_Play implements IStrategy {
         this.console = context.getConsole();
         indicators = context.getIndicators();
         List<IBar> bars = getBars(Period.FIFTEEN_MINS,Instrument.GBPUSD,5000);
+        List<IBar> bars2 = getBars(Period.ONE_HOUR,Instrument.GBPUSD,150);
+        Double v = anyFunction.get_volatility_v1(bars2);
+        System.out.println(v);
         AreasFinder areasFinder = new AreasFinder(bars,Period.FIFTEEN_MINS,Instrument.GBPUSD);
         List<Protorgovka> protorgovkas = areasFinder.find_protorgovkas(0.01);
         for (Protorgovka protorgovka : protorgovkas) {
@@ -109,7 +112,6 @@ public class MA_Play implements IStrategy {
         Protorgovka protorgovka = new Protorgovka(period,instrument);
         List<IBar> bars = getBars(Period.DAILY,instrument,30);
         double volatillity = anyFunction.get_volatility_v1(bars);
-        System.out.println(volatillity);
         List<IBar> bars_for_chech_trend;
         double trend_param_changer = volatillity / 4.5;
         double bars_trend_diference;
@@ -147,7 +149,6 @@ public class MA_Play implements IStrategy {
             counter_2 = counter_1;
             while (flag_2){
                 counter_2 +=1;
-                System.out.println(counter_2);
                 delta_between_bars = (previous_bar.getClose() + previous_bar.getClose())/2 * volatillity / 5;
                 bar = history.getBar(instrument,period,OfferSide.BID,counter_2);
                 while (new Date(bar.getTime()).getDay()==0||new Date(bar.getTime()).getMonth()==6||bar.getVolume()==0){
@@ -157,7 +158,6 @@ public class MA_Play implements IStrategy {
                 bars_for_chech_trend.add(bar);
                 close_cost_bar = bar.getClose();
                 close_cost_old_bar = previous_bar.getClose();
-                System.out.println(Math.abs(close_cost_bar-close_cost_old_bar)>delta_between_bars);
                 max_cost_in_area = Math.max(close_cost_bar, max_cost_in_area);
                 min_cost_in_area = Math.min(close_cost_bar, min_cost_in_area);
                 if(bars_for_chech_trend.size()==6){
@@ -188,7 +188,6 @@ public class MA_Play implements IStrategy {
                     flag_2 = false;
                 }
                 if(flag_2 == false){
-                    System.out.println("!!");
                     break;
                 }
                 else {

@@ -26,8 +26,6 @@ public class Area {
         this.instrument = instrument;
         this.bars = new ArrayList<IBar>();
         this.height_as_percent = 0.0;
-        this.max_bar = null;
-        this.min_bar = null;
         //why_close = "no info";
     }
 
