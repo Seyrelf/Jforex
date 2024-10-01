@@ -1,29 +1,19 @@
 package singlejartest.model;
 
-import com.dukascopy.api.IBar;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.Period;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
+@Getter
+@Setter
 public class Protorgovka extends Area {
     String why_close;
 
     public Protorgovka(Period period, Instrument instrument){
         super(period,instrument);
         why_close = "";
-    }
-
-    public String getWhy_close() {
-        return why_close;
-    }
-
-    public void setWhy_close(String why_close) {
-        this.why_close = why_close;
     }
 
     public double get_width_80_percent(){

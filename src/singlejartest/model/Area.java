@@ -3,7 +3,8 @@ package singlejartest.model;
 import com.dukascopy.api.IBar;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.Period;
-import org.ta4j.core.Bar;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -11,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Getter
+@Setter
 public class Area {
 
     List<IBar> bars;
@@ -26,7 +29,6 @@ public class Area {
         this.instrument = instrument;
         this.bars = new ArrayList<IBar>();
         this.height_as_percent = 0.0;
-        //why_close = "no info";
     }
 
     public void set_Max_Min_bar(IBar max,IBar min) {
@@ -99,19 +101,9 @@ public class Area {
         ZonedDateTime last_datetime = new Date(this.getLast().getTime()).toInstant().atZone(zone);
         System.out.println("Начало зоны: " + first_datetime + "Конец зоны: " + last_datetime + "Ширина зоны" + this.height_as_percent);
     }
-
     public void addAll(List<IBar> bars) {
         this.bars.addAll(bars);
     }
-
-    public List<IBar> getBars() {
-        return bars;
-    }
-
-    public void setBars(List<IBar> bars) {
-        this.bars = bars;
-    }
-
     public void deleteLast(){
         bars.remove(bars.size()-1);
     }
@@ -119,19 +111,4 @@ public class Area {
         bars.remove(0);
     }
 
-    public Period getPeriod() {
-        return period;
-    }
-
-    public void setPeriod(Period period) {
-        this.period = period;
-    }
-
-    public Instrument getInstrument() {
-        return instrument;
-    }
-
-    public void setInstrument(Instrument instrument) {
-        this.instrument = instrument;
-    }
 }

@@ -3,6 +3,8 @@ package singlejartest.otherClass;
 import com.dukascopy.api.IBar;
 import com.dukascopy.api.Instrument;
 import com.dukascopy.api.Period;
+import lombok.Getter;
+import lombok.Setter;
 import singlejartest.model.Area;
 import singlejartest.model.Protorgovka;
 import singlejartest.model.TrendDown;
@@ -13,6 +15,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
 public class AreasFinder {
     List<Area> areas;
     List<Protorgovka> protorgovkas;
@@ -164,8 +168,10 @@ public class AreasFinder {
             bar = bars.get(i);
             protorgovka.addBar(bar);
             delta_in_area = (bar.getClose()+bar.getClose())/2 * volatillity;
-            max_cost_in_area = bars.get(i).getHigh();
-            min_cost_in_area = bars.get(i).getLow();
+            max_cost_in_area = bars.get(i).getClose();
+            min_cost_in_area = bars.get(i).getClose();
+            IBar max_bar = bars.get(i);
+            IBar min_bar = bars.get(i);
             previous_bar = bar;
             bars_for_chech_trend.add(bar);
             for(int j = i+1;j<bars.size();j++){
@@ -173,7 +179,7 @@ public class AreasFinder {
                 bar = bars.get(j);
                 bars_for_chech_trend.add(bar);
                 close_cost_bar = bar.getClose();
-                close_cost_old_bar = previous_bar.getHigh();
+                close_cost_old_bar = previous_bar.getClose();
                 max_cost_in_area = Math.max(close_cost_bar, max_cost_in_area);
                 min_cost_in_area = Math.min(close_cost_bar, min_cost_in_area);
                 if(bars_for_chech_trend.size()==6){
@@ -206,11 +212,14 @@ public class AreasFinder {
                     break;
                 }
                 else {
+                    max_bar = max_bar.getClose()>bar.getClose()?max_bar:bar;
+                    min_bar = min_bar.getClose()<bar.getClose()?min_bar:bar;
                     protorgovka.addBar(bar);
                 }
                 previous_bar = bar;
             }
             if(protorgovka.getArea_length()>=10){
+                protorgovka.set_Max_Min_bar(max_bar,min_bar);
                 if(all_protorgovka_area.size()==0){
                     all_protorgovka_area.add(protorgovka);
                     last_bar = protorgovka.getLast();
@@ -229,35 +238,5 @@ public class AreasFinder {
         return this.getProtorgovkas();
     }
 
-    public List<TrendUp> getTrendUps() {
-        return trendUps;
-    }
 
-    public void setTrendUps(List<TrendUp> trendUps) {
-        this.trendUps = trendUps;
-    }
-
-    public List<TrendDown> getTrendDowns() {
-        return trendDowns;
-    }
-
-    public void setTrendDowns(List<TrendDown> trendDowns) {
-        this.trendDowns = trendDowns;
-    }
-
-    public List<Protorgovka> getProtorgovkas() {
-        return protorgovkas;
-    }
-
-    public void setProtorgovkas(List<Protorgovka> protorgovkas) {
-        this.protorgovkas = protorgovkas;
-    }
-
-    public List<Area> getAreas() {
-        return areas;
-    }
-
-    public void setAreas(List<Area> areas) {
-        this.areas = areas;
-    }
 }
