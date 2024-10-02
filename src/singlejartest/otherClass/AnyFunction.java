@@ -15,11 +15,27 @@ public class AnyFunction {
     IHistory history;
     IAccount account;
     IEngine engine;
+
     public AnyFunction(IContext context){
         this.context = context;
         this.history = context.getHistory();
         this.account = context.getAccount();
         this.engine = context.getEngine();
+    }
+
+    public void check_kombi_long(Instrument instrument,Period period) throws JFException {
+        IBar lastBar = history.getBar(instrument,period,OfferSide.BID,1);
+        IBar prevBar = history.getBar(instrument,period,OfferSide.BID,2);
+        if(lastBar.getClose()>prevBar.getClose() && lastBar.getLow()<prevBar.getLow()){
+
+        }
+    }
+
+    public void check_kombi_short(Instrument instrument,Period period) throws JFException {
+        IBar lastBar = history.getBar(instrument,period,OfferSide.BID,1);
+        IBar prevBar = history.getBar(instrument,period,OfferSide.BID,2);
+        if(lastBar.getClose()<prevBar.getClose() && lastBar.getHigh()>prevBar.getHigh()){
+        }
     }
 
     public void get_acc_info() throws JFException {
@@ -42,8 +58,7 @@ public class AnyFunction {
 
     public Protorgovka get_last_protorgovka(Instrument instrument, Period period) throws JFException {
         Protorgovka protorgovka = new Protorgovka(period,instrument);
-        List<IBar> bars = getBars(Period.DAILY,instrument,30);
-        double volatillity = get_volatility_v1(bars);
+        double volatillity = get_volatility_v1(instrument);
         List<IBar> bars_for_chech_trend;
         double trend_param_changer = volatillity / 4.5;
         double bars_trend_diference;

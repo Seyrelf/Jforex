@@ -7,7 +7,6 @@ import singlejartest.otherClass.AnyFunction;
 public class MA_Play implements IStrategy {
     private IEngine engine = null;
     private IIndicators indicators = null;
-    private int tagCounter = 0;
     private IConsole console;
     private IHistory history;
     private IAccount account;

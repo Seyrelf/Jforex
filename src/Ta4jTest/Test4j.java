@@ -31,10 +31,33 @@ import java.time.Period;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 public class Test4j {
     public static void main(String[] args){
+        Scanner scanner = new Scanner(System.in);
+        Thread thread = new Thread(() -> {
+            while(true){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                final String[] s = {scanner.nextLine()};
+                if(!s[0].equals("t")){
+                    System.out.println("wait trend");}
+                else {
+                    System.out.println("trend!!!");
+                }
+            }
+        });
+        thread.start();
+
+
+        }
+
+
     }
-    }
+
 
 
